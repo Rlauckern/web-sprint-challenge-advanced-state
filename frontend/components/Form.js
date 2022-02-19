@@ -5,14 +5,20 @@ import * as actionCreators from '../state/action-creators'
 export function Form(props) {
 
   const onChange = evt => {
-
+    const { value } = evt.target
+    props.inputChange(value)
   }
 
   const onSubmit = evt => {
+    evt.preventDefault()
 
   }
 
+  
+
   return (
+
+
     <form id="form" onSubmit={onSubmit}>
       <h2>Create New Quiz</h2>
       <input maxLength={50} onChange={onChange} id="newQuestion" placeholder="Enter question" />
