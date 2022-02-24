@@ -1,85 +1,70 @@
 import * as types from './action-types';
-import axios from 'axios';
+import { combineReducers } from 'redux'
 
-// ❗ You don't need to add extra action creators to achieve MVP
-export const moveClockwise = () =>
-  ({ type: types.MOVE_CLOCKWISE })
-
-export const moveCounterClockwise = () =>
-  ({ type: types.MOVE_COUNTERCLOCKWISE })
-
-export const selectAnswer = id => {
-  ({ type: types.SET_SELECTED_ANSWER, payload: id })
-}
-
-export const setMessage = () => {
-  ({ type: types.SET_INFO_MESSAGE })
-}
-
-export const setQuiz = quiz => {
-  ({ type: types.SET_QUIZ_INTO_STATE,
-    payload: {
-      quiz_id: quiz.quiz_id, question: quiz.question,
-      answers: [{answer_id: quiz.answers[0].answer_id, text: quiz.answers[0].text},
-      {answer_id: quiz.answers[1].answer_id, text: quiz.answers[1].text}]
-    }
-  })
-}
-
-export const inputChange = (value, inputId) => 
-  ({ type: types.INPUT_CHANGE, payload: { value: value, inputID: inputId } })
-
-export const resetForm = () =>
-  ({ type: types.RESET_FORM })
-
-// ❗ Async action creators
-export function fetchQuiz() {
-  return function (dispatch) {
-    dispatch({ type: types.SET_QUIZ_INTO_STATE, payload: null })
-    axios.get('http://localhost:9000/api/quiz/next')
-      .then(res => {
-        console.log(res);
-        dispatch({ type: types.SET_QUIZ_INTO_STATE, payload: res.data });
-      })
-      .catch(err => {
-        console.error(err);
-      })
-    // First, dispatch an action to reset the quiz state (so the "Loading next quiz..." message can display)
-    // On successful GET:
-    // - Dispatch an action to send the obtained quiz to its state
+const initialWheelState = 0
+function wheel(state = initialWheelState, action) {
+  switch (action.type) {
+    case types.MOVE_CLOCKWISE:
+      if(state === 5) {
+        return state * 0;
+      } else {
+        return state + 1;
+      }
+    case types.MOVE_COUNTERCLOCKWISE:
+      if(state === 0) {
+        return state + 5;
+      } else {
+        return state - 1;
+      }
+      default:
+        return state;
   }
 }
-export function postAnswer() {
-  return function (dispatch) {
-    dispatch({ type: types.SET_SELECTED_ANSWER, payload: null})
-    axios.post('http://localhost:9000/api/quiz/answer')
-      .then(res => {
-        console.log(res);
-        dispatch({ type: types.SET_INFO_MESSAGE, payload: res.data})
-      })
-      .catch(err => {
-        console.error(err);
-      })
-    // On successful POST:
-    // - Dispatch an action to reset the selected answer state
-    // - Dispatch an action to set the server message to state
-    // - Dispatch the fetching of the next quiz
-  }
-}
-export function postQuiz() {
-  return function (dispatch) {
-    dispatch({ type: types.SET_INFO_MESSAGE, payload: res.data })
-    axios.post('http://localhost:9000/api/quiz/new')
-      .then(res => {
-        dispatch({ type: types.SET_INFO_MESSAGE, payload: null })
-      })
-      .catch(err => {
-        console.error(err);
-      })
 
-    // On successful POST:
-    // - Dispatch the correct message to the the appropriate state
-    // - Dispatch the resetting of the form
+const initialQuizState = null
+function quiz(state = initialQuizState, action) {
+  switch (action.type) {
+    case types.SET_QUIZ_INTO_STATE:
+      return action.payload
+    default:
+      return state;
   }
 }
-// ❗ On promise rejections, use log statements or breakpoints, and put an appropriate error message in state
+
+const initialSelectedAnswerState = null
+function selectedAnswer(state = initialSelectedAnswerState, action) {
+  switch (action.type) {
+    case types.SET_SELECTED_ANSWER:
+      return action.payload
+    default:
+      return state;
+  }
+}
+
+const initialMessageState = ''
+function infoMessage(state = initialMessageState, action) {
+  switch (action.type) {
+    case types.SET_INFO_MESSAGE:
+      return action.payload
+    default:
+      return state;
+  }
+}
+
+const initialFormState = {
+  newQuestion: '',
+  newTrueAnswer: '',
+  newFalseAnswer: '',
+}
+function form(state = initialFormState, action) {
+  switch (action.type) {
+    case types.RESET_FORM:
+      return action.payload
+    case types.INPUT_CHANGE:
+      return [...state, action.payload];
+    default:
+      return state;
+  }
+}
+
+export default combineReducers({ wheel, quiz, selectedAnswer, infoMessage, form })
