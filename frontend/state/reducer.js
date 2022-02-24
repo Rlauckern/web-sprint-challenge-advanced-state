@@ -1,4 +1,4 @@
-mport * as types from './action-types';
+import * as types from './action-types';
 import { combineReducers } from 'redux'
 
 const initialWheelState = 0
